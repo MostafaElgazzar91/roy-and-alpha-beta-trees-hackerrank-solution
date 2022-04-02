@@ -1,0 +1,273 @@
+#include <iostream>
+#include <math.h>
+#include<vector> 
+#include <queue>
+using namespace std;
+int resultcase[10];
+long A[150];
+long alpha, beta;
+int cases;
+struct node
+{
+	long long key;
+	struct node *left, *right;
+};
+struct node *newNode(long item)
+{
+	struct node *temp = new node;
+	temp->key = item;
+	temp->left = temp->right = NULL;
+	return temp;
+}
+
+// function for constructing trees 
+vector<struct node *> constructTrees(int start, int end)
+{
+	vector<struct node *> list;
+
+	/* if start > end then subtree will be empty so returning NULL
+	in the list */
+	if (start > end)
+	{
+		list.push_back(NULL);
+		return list;
+	}
+
+	/* iterating through all values from start to end for constructing\
+	left and right subtree recursively */
+	for (int i = start; i <= end; i++)
+	{
+		
+		vector<struct node *> leftSubtree = constructTrees(start, i - 1);
+
+		vector<struct node *> rightSubtree = constructTrees(i + 1, end);
+
+		/* now looping through all left and right subtrees and connecting
+		them to ith root below */
+		for (int j = 0; j < leftSubtree.size(); j++)
+		{
+			struct node* left = leftSubtree[j];
+			for (int k = 0; k < rightSubtree.size(); k++)
+			{
+				struct node * right = rightSubtree[k];
+				struct node * node = newNode(i);// making value i as root 
+				node->left = left;			 // connect left subtree 
+				node->right = right;		 // connect right subtree 
+				list.push_back(node);		 // add this tree to list 
+			}
+		}
+	}
+	return list;
+}
+void preorder(struct node *root)
+{
+	if (root != NULL)
+	{ 
+		//root->key = A[root->key];
+		cout << A[root->key] << " ";
+		preorder(root->left);
+		preorder(root->right);
+	}
+}
+
+bool check(int value, long min, long max)
+{
+	if (value >= min&& value <= max)
+		return true;
+	else
+		return false;
+}
+int evenLevelsum(node* root)
+{
+	if (!root)
+		return 0;
+
+	// create a queue for 
+	// level order traversal 
+	queue<node*> q;
+	q.push(root);
+
+	int level = 0;
+	int evenSum = 0;
+
+	// traverse until the 
+	// queue is empty 
+	while (!q.empty())
+	{
+		int size = q.size();
+		level += 1;
+
+		// traverse for 
+		// complete level 
+		while (size > 0)
+		{
+			node* temp = q.front();
+			q.pop();
+
+			// check if level no. 
+			// is even or odd and 
+			// accordingly update 
+			// the evenSum or oddSum 
+			if (level % 2 != 0)
+				evenSum += A[temp->key];
+		
+				
+
+			// check for left child 
+			if (temp->left)
+			{
+				q.push(temp->left);
+			}
+
+			// check for right child 
+			if (temp->right)
+			{
+				q.push(temp->right);
+			}
+			size -= 1;
+		}
+	}
+	return evenSum;
+}
+
+int oddLevelsum(node* root)
+{
+	if (!root)
+		return 0;
+
+	// create a queue for 
+	// level order traversal 
+	queue<node*> q;
+	q.push(root);
+
+	int level = 0;
+	int  oddSum = 0;
+
+	// traverse until the 
+	// queue is empty 
+	while (!q.empty())
+	{
+		int size = q.size();
+		level += 1;
+
+		// traverse for 
+		// complete level 
+		while (size > 0)
+		{
+			node* temp = q.front();
+			q.pop();
+
+			// check if level no. 
+			// is even or odd and 
+			// accordingly update 
+			// the evenSum or oddSum 
+			if (level % 2 == 0)
+				oddSum += A[temp->key];
+			
+			// check for left child 
+			if (temp->left)
+			{
+				q.push(temp->left);
+			}
+
+			// check for right child 
+			if (temp->right)
+			{
+				q.push(temp->right);
+			}
+			size -= 1;
+		}
+	}
+	
+
+	return oddSum;
+}
+int process()
+{
+	int sum;
+	int N;
+	long result;
+	do {
+		cin >> N;
+		if (check(N, 1, 150))
+		{
+			cout << "Enter alpha then beta between 1 and 10^9" << endl;
+
+			do {
+				alpha = 0;
+				beta = 0;
+				cin >> alpha;
+				cin >> beta;
+				long max = pow(10, 9);
+				if (!check(alpha, 1, max) || !check(beta, 1, max))
+				{
+					cout << "Please Enter alpha then beta between 1 and 10^9" << endl;
+				}
+				else {
+					break;
+				}
+
+			} while (!check(alpha, 1, pow(10, 9)) || !check(beta, 1, pow(10, 9)));
+			for (int j = 0; j < N; j++)
+			{
+				long num;
+				cout << "Enter number " << j + 1 << endl;
+				do {
+					cin >> num;
+					if (check(num, 1, pow(10, 9)))
+						A[j] = num;
+					else {
+						cout << "enter number between 1 & 10000000009 " << endl;
+					}
+				} while (!check(num, 1, pow(10, 9)));
+			}
+			cout << "**********************************************************************" << endl;
+			vector<struct node *> totalTreesFrom1toN = constructTrees(0, N - 1);
+			for (int i = 0; i < totalTreesFrom1toN.size(); i++)
+			{
+				preorder(totalTreesFrom1toN[i]);
+				cout << endl;
+			}
+			 sum = 0;
+			for (int i = 0; i < totalTreesFrom1toN.size(); i++)
+			{
+				int odd = oddLevelsum(totalTreesFrom1toN[i]);
+				int even= evenLevelsum(totalTreesFrom1toN[i]);
+				 even =even * alpha;
+				 odd =odd * beta;
+				 sum +=even - odd;
+			}
+			cout << endl << "**********************************************************************" << endl;
+			cout << "Count of all possible trees:" << totalTreesFrom1toN.size() << endl<<endl;
+			cout << "End of trees" << endl;
+			cout << endl << "**********************************************************************" << endl;
+
+		}
+		else
+			cout << "Please Enter numbers of case " << " between 1 and 150 " << endl;
+	} while (!check(N, 1, 150));
+	return sum;
+}
+
+void main()
+{
+	cout << "enter number of cases between 1 and 10" << endl;
+	do {
+		cin >> cases;
+
+		if (check(cases, 1, 10))
+			for (int i = 0; i < cases; i++)
+			{
+				cout << "Enter numbers of case " << i + 1 << " between 1 and 150 " << endl;
+			resultcase[i]=	process();
+			}
+		else
+			cout << " enter number between 1 and 10 " << endl;
+	} while (!check(cases, 1, 10));
+	cout << "**********************************************************************" << endl << endl;
+	cout << "Roy and alpha equations answers for all trees:" << endl;
+	for (int i = 0; i < cases; i++) {
+		cout << "result of case " << i + 1 << " : " << resultcase[i] << endl;
+	}
+	system("pause");
+}
